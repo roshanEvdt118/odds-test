@@ -71,9 +71,10 @@ export default function App() {
   //   console.log("Connected with Socket.IO");
   // });
 
-  const socket = io("https://dev-api-socket.odds777.bet", {
+  const socket = io(process.env.REACT_APP_SOCKET_URL, {
     transports: ["websocket"],
   });
+  console.log("process.env.REACT_APP_REGION.REACT_APP_SOCKET_URL",process.env.REACT_APP_SOCKET_URL)
   
   socket.on("connect", () => {
     
