@@ -20,8 +20,6 @@ import {
 } from '@mui/material';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
-
-
 import React, { useEffect, useRef, useState } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { Provider as ReduxProvider } from 'react-redux';
@@ -29,7 +27,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { PersistGate } from 'redux-persist/lib/integration/react';
 // routes
 import { Toaster } from 'react-hot-toast';
-import io from "socket.io-client"
+import io from 'socket.io-client';
 import Router from './routes';
 
 // theme
@@ -57,55 +55,60 @@ const Transition = React.forwardRef((props, ref) => (
 ));
 
 export default function App() {
-
   const [open, setOpen] = useState(false); // show on load
 
   // const [isConnected, setIsConnected] = useState(socket.connected);
   const [allMessages, setAllMessages] = useState([]);
 
+  const [adminCard, setAdminCard] = useState(null);
+  const [userCard, setUserCard] = useState(null);
+
   // const socket = io("wss://dev-api-socket.odds777.bet", {
   //   transports: ["websocket"],
   // });
-  
+
   // socket.on("connect", () => {
   //   console.log("Connected with Socket.IO");
   // });
 
-  const socket = io("https://dev-api-socket.odds777.bet", {
-    transports: ["websocket"],
-  });
-  
-  socket.on("connect", () => {
-    
-    console.log("✅ Connected to v2.x server!");
-  });
-  
-  socket.on("connect_error", (err) => {
-    console.log("❌ Connection Error:", err.message);
+  const socket = io('https://dev-api-socket.odds777.bet', {
+    transports: ['websocket'],
   });
 
-  socket.on("credit_admin", (payload) => {
-    setOpen(true);
-    playSound();
-    console.log("✅ credit admin",payload);
-  });
-  socket.on("debit_admin", (payload) => {
-    setOpen(true);
-    playSound();
-    console.log("❌ debit_admin",payload);
-  });
-  socket.on("debit_user", (payload) => {
-    setOpen(true);
-    playSound();
-    console.log("❌ debit_user",payload);
-  });
-  socket.on("registration", (payload) => {
-    setOpen(true);
-    playSound();
-    console.log("✅ registration",payload);
+  socket.on('connect', () => {
+    console.log('✅ Connected to v2.x server!');
   });
 
-  console.log("allMessages", allMessages);
+  socket.on('connect_error', (err) => {
+    console.log('❌ Connection Error:', err.message);
+  });
+
+  socket.on('credit_admin', (payload) => {
+    setAdminCard(payload);
+    setOpen(true);
+    playSound();
+    console.log('✅ credit admin', payload);
+  });
+  socket.on('debit_admin', (payload) => {
+    setAdminCard(payload);
+    setOpen(true);
+    playSound();
+    console.log('❌ debit_admin', payload);
+  });
+  socket.on('debit_user', (payload) => {
+    setUserCard(payload);
+    setOpen(true);
+    playSound();
+    console.log('❌ debit_user', payload);
+  });
+  socket.on('registration', (payload) => {
+    setUserCard(payload);
+    setOpen(true);
+    playSound();
+    console.log('✅ registration', payload);
+  });
+
+  console.log('allMessages', allMessages);
 
   const playSound = () => {
     const audio = new Audio('/sound/ting-sound.mp3');
@@ -119,20 +122,18 @@ export default function App() {
     // playSound();
   }, []);
 
-
   const handleClose = () => {
     setOpen(false);
-  }
+  };
 
   useEffect(() => {
     const unlock = () => {
       const audio = new Audio();
       audio.play().catch(() => {});
-      window.removeEventListener("click", unlock); // Remove after first click
+      window.removeEventListener('click', unlock); // Remove after first click
     };
-    window.addEventListener("click", unlock);
+    window.addEventListener('click', unlock);
   }, []);
-  
 
   return (
     <AuthProvider>
@@ -179,14 +180,69 @@ export default function App() {
         <DialogTitle>
           <Box display="flex" alignItems="center" gap={1}>
             <WarningAmberIcon color="warning" />
-            <Typography fontWeight={600}>Heads Up!</Typography>
+            <Typography fontWeight={600}>Notification!</Typography>
           </Box>
         </DialogTitle>
 
         <DialogContent>
-          <Typography>
-            Something important just happened. Please check it and confirm or dismiss this message.
-          </Typography>
+          {adminCard && (
+            <>
+              <Typography>
+                <strong>Message:</strong> {adminCard.message}
+              </Typography>
+              <Typography>
+                <strong>Email:</strong> {adminCard.data?.email}
+              </Typography>
+
+              <Typography>
+                <strong>Amount:</strong> ₹{adminCard.data?.amount}
+              </Typography>
+              <Typography>
+                <strong>Currency:</strong> {adminCard.data?.currency}
+              </Typography>
+              <Typography>
+                <strong>Source:</strong> {adminCard.data?.source}
+              </Typography>
+            </>
+          )}
+
+          {!adminCard && userCard && (
+            <>
+              {!userCard.data?.accountNumber && (
+                <>
+                  <Typography>
+                    <strong>Email:</strong> {userCard.data?.email}
+                  </Typography>
+                  <Typography>
+                    <strong>Message:</strong> {userCard.data?.message}
+                  </Typography>
+                </>
+              )}
+              <Typography>
+                <strong>Message:</strong> {userCard.message}
+              </Typography>
+              <Typography>
+                <strong>Name:</strong> {userCard.data?.name}
+              </Typography>
+              <Typography>
+                <strong>Email:</strong> {userCard.data?.email}
+              </Typography>
+              <Typography>
+                <strong>Account No.:</strong> ₹{userCard.data?.accountNumber}
+              </Typography>
+              <Typography>
+                <strong>Bank:</strong> {userCard.data?.bank}
+              </Typography>
+              <Typography>
+                <strong>IFSC Code:</strong> {userCard.data?.ifscCode}
+              </Typography>
+              <Typography>
+                <strong>Mode:</strong> {userCard.data?.mode}
+              </Typography>
+            </>
+          )}
+
+          {!adminCard && !userCard && <Typography>No data received</Typography>}
         </DialogContent>
 
         <DialogActions>
